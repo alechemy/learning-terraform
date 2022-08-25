@@ -49,6 +49,8 @@ resource "aws_security_group" "prod_web" {
 }
 
 resource "aws_instance" "prod_web" {
+  count = 2
+
   ami           = "ami-0bf2de022ba73d0be"
   instance_type = "t2.nano"
 
@@ -61,10 +63,14 @@ resource "aws_instance" "prod_web" {
   }
 }
 
+# De-couple creation of IP and its assignment
+resource "aws_eip_association" "prod_web" {
+  instance_id   = aws_instance.prod_web[0].id
+  allocation_id = aws_eip.prod_web.id
+}
+
 # static IP
 resource "aws_eip" "prod_web" {
-  instance = aws_instance.prod_web.id
-
   tags = {
     "Terraform" : "true"
   }
